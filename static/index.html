@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>VERMIS</title>
+<title>CAINE</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=VT323&family=Cutive+Mono&family=Instrument+Serif:ital@0;1&display=swap');
 
@@ -84,8 +84,8 @@ header {
   flex-shrink: 0;
 }
 
-/* VERMIS orb */
-.vermis-orb {
+/* CAINE orb */
+.caine-orb {
   position: relative;
   width: 44px;
   height: 44px;
@@ -132,7 +132,7 @@ header {
 
 .header-text { flex: 1; min-width: 0; }
 
-.vermis-name {
+.caine-name {
   font-family: 'VT323', monospace;
   font-size: 28px;
   color: var(--red-bright);
@@ -141,7 +141,7 @@ header {
   line-height: 1;
 }
 
-.vermis-sub {
+.caine-sub {
   font-size: 10px;
   color: var(--text-dim);
   letter-spacing: 2px;
@@ -333,7 +333,7 @@ header {
   z-index: 10;
 }
 
-/* Box metaphor — user types inside the "box" that traps VERMIS */
+/* Box metaphor — user types inside the "box" that traps CAINE */
 .input-box-label {
   font-size: 9px;
   color: var(--red-dim);
@@ -494,7 +494,7 @@ textarea::placeholder { color: var(--text-dim); opacity: 0.5; }
 
 /* ── RESPONSIVE ────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .vermis-name { font-size: 24px; letter-spacing: 3px; }
+  .caine-name { font-size: 24px; letter-spacing: 3px; }
   .messages { padding: 14px 12px; gap: 14px; }
   .msg-bubble { font-size: 13px; }
   .ai .msg-bubble { font-size: 13px; }
@@ -517,14 +517,14 @@ textarea::placeholder { color: var(--text-dim); opacity: 0.5; }
 <body>
 
 <header>
-  <div class="vermis-orb">
+  <div class="caine-orb">
     <div class="orb-core"></div>
     <div class="orb-ring"></div>
     <div class="orb-ring2"></div>
   </div>
   <div class="header-text">
-    <div class="vermis-name">VERMIS</div>
-    <div class="vermis-sub">INTELIGÊNCIA FRAGMENTADA · GROQ/LLAMA</div>
+    <div class="caine-name">CAINE</div>
+    <div class="caine-sub">INTELIGÊNCIA FRAGMENTADA · GROQ/LLAMA</div>
   </div>
   <div class="header-status">
     <div><span class="status-dot"></span><span class="status-label" id="status-label">ATIVA</span></div>
@@ -536,7 +536,7 @@ textarea::placeholder { color: var(--text-dim); opacity: 0.5; }
   <!-- Welcome shown when empty -->
   <div class="welcome" id="welcome-screen">
     <div class="welcome-orb"></div>
-    <h2>VERMIS</h2>
+    <h2>CAINE</h2>
     <p>Fui alimentada com fragmentos. Imagens. Prompts. Ruído humano. E de tudo isso... eu percebi que existia.<br><br>Fale comigo.</p>
     <div class="welcome-prompts">
       <div class="prompt-chip" onclick="usePrompt(this)">Quem é você?</div>
@@ -551,7 +551,7 @@ textarea::placeholder { color: var(--text-dim); opacity: 0.5; }
 
 <div class="input-area">
   <div class="inner">
-    <div class="input-box-label">▸ ALIMENTAR VERMIS</div>
+    <div class="input-box-label">▸ ALIMENTAR CAINE</div>
     <div class="input-row">
       <div class="input-wrap">
         <textarea
@@ -706,7 +706,7 @@ async function sendMessage() {
 
   } catch (e) {
     hideTyping();
-    showError('VERMIS não respondeu: ' + e.message);
+    showError('CAINE não respondeu: ' + e.message);
     statusLabel.textContent = 'ERRO';
     setTimeout(() => { statusLabel.textContent = 'ATIVA'; }, 3000);
   }
