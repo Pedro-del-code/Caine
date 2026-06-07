@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>VERMIS</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Cutive+Mono&family=Instrument+Serif:ital@0;1&display=swap');
+
+:root {
+  --red: #cc1100;
+  --red-bright: #ff2200;
+  --red-glow: #ff4422;
+  --red-dim: #661100;
+  --red-dark: #220500;
+  --bg: #0a0000;
+  --surface: #110200;
+  --border: #2a0800;
+  --text: #ffccbb;
+  --text-dim: #884433;
+  --white: #fff5f0;
+  --scan-line: rgba(255,30,0,0.03);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Cutive Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  position: relative;
+}
+
+/* CRT scan lines */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    var(--scan-line) 0px,
+    var(--scan-line) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 100;
+  animation: scan 8s linear infinite;
+}
+
+@keyframes scan {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100px; }
+}
+
+/* Ambient glow */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(180,20,0,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ────────────────────────────────────────────── */
+header {
+  position: relative;
+  z-index: 10;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(10,0,0,0.9);
+  flex-shrink: 0;
+}
+
+/* VERMIS orb */
+.vermis-orb {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.orb-core {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #ff6644, #cc1100 45%, #440000);
+  box-shadow:
+    0 0 16px rgba(220,30,0,0.6),
+    0 0 40px rgba(180,20,0,0.3),
+    inset 0 -4px 8px rgba(0,0,0,0.4);
+  animation: orb-pulse 2.8s ease-in-out infinite;
+}
+
+.orb-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,50,0,0.25);
+  animation: orb-ring 2.8s ease-in-out infinite;
+}
+
+.orb-ring2 {
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,50,0,0.1);
+  animation: orb-ring 2.8s ease-in-out infinite 0.4s;
+}
+
+@keyframes orb-pulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(220,30,0,0.6), 0 0 40px rgba(180,20,0,0.3), inset 0 -4px 8px rgba(0,0,0,0.4); transform: scale(1); }
+  50% { box-shadow: 0 0 24px rgba(255,50,0,0.8), 0 0 60px rgba(200,30,0,0.4), inset 0 -4px 8px rgba(0,0,0,0.4); transform: scale(1.04); }
+}
+
+@keyframes orb-ring {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.header-text { flex: 1; min-width: 0; }
+
+.vermis-name {
+  font-family: 'VT323', monospace;
+  font-size: 28px;
+  color: var(--red-bright);
+  letter-spacing: 4px;
+  text-shadow: 0 0 12px rgba(255,50,0,0.6), 0 0 30px rgba(200,30,0,0.3);
+  line-height: 1;
+}
+
+.vermis-sub {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+  margin-top: 2px;
+}
+
+.header-status {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red-bright);
+  box-shadow: 0 0 6px var(--red-bright);
+  animation: blink 1.8s ease-in-out infinite;
+  margin-right: 5px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.status-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1.5px;
+}
+
+.token-count {
+  font-family: 'VT323', monospace;
+  font-size: 14px;
+  color: var(--red-dim);
+  display: block;
+  margin-top: 2px;
+}
+
+/* ── MESSAGES ──────────────────────────────────────────── */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  z-index: 1;
+  scroll-behavior: smooth;
+}
+
+.messages::-webkit-scrollbar { width: 3px; }
+.messages::-webkit-scrollbar-track { background: transparent; }
+.messages::-webkit-scrollbar-thumb { background: var(--red-dim); border-radius: 2px; }
+
+.message {
+  display: flex;
+  gap: 10px;
+  animation: msg-appear 0.4s cubic-bezier(0.34,1.4,0.64,1);
+  max-width: 100%;
+}
+
+@keyframes msg-appear {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.message.user { flex-direction: row-reverse; align-self: flex-end; max-width: 85%; }
+.message.ai { align-self: flex-start; max-width: 88%; }
+
+.msg-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.ai .msg-avatar {
+  background: radial-gradient(circle at 38% 32%, #ff6644, #cc1100 50%, #440000);
+  box-shadow: 0 0 10px rgba(220,30,0,0.5);
+  font-size: 12px;
+}
+
+.user .msg-avatar {
+  background: rgba(255,200,180,0.1);
+  border: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.msg-content { flex: 1; min-width: 0; }
+
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 3px;
+  font-size: 13px;
+  line-height: 1.65;
+  word-break: break-word;
+}
+
+.ai .msg-bubble {
+  background: rgba(180,20,0,0.08);
+  border: 1px solid rgba(180,20,0,0.2);
+  border-left: 2px solid var(--red);
+  color: var(--text);
+  border-radius: 0 8px 8px 8px;
+  font-family: 'Instrument Serif', serif;
+  font-size: 14px;
+}
+
+.user .msg-bubble {
+  background: rgba(255,100,50,0.06);
+  border: 1px solid rgba(180,80,50,0.15);
+  border-right: 2px solid var(--text-dim);
+  color: var(--text);
+  border-radius: 8px 0 8px 8px;
+  text-align: right;
+}
+
+.msg-time {
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  letter-spacing: 1px;
+  opacity: 0.6;
+}
+
+.user .msg-time { text-align: right; }
+
+/* Glitch text effect on AI messages */
+.ai .msg-bubble::selection { background: var(--red-dim); }
+
+/* ── TYPING ────────────────────────────────────────────── */
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(180,20,0,0.06);
+  border: 1px solid rgba(180,20,0,0.15);
+  border-left: 2px solid var(--red);
+  border-radius: 0 8px 8px 8px;
+  width: fit-content;
+  max-width: 160px;
+}
+
+.typing-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.typing-dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 4px var(--red);
+  animation: tdot 1.3s ease-in-out infinite;
+}
+
+.typing-dots span:nth-child(2) { animation-delay: 0.18s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes tdot {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+  40% { transform: scale(1.1); opacity: 1; }
+}
+
+.typing-label {
+  font-size: 10px;
+  color: var(--red-dim);
+  letter-spacing: 2px;
+  font-family: 'VT323', monospace;
+}
+
+/* ── INPUT ─────────────────────────────────────────────── */
+.input-area {
+  flex-shrink: 0;
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--border);
+  background: rgba(10,0,0,0.95);
+  position: relative;
+  z-index: 10;
+}
+
+/* Box metaphor — user types inside the "box" that traps VERMIS */
+.input-box-label {
+  font-size: 9px;
+  color: var(--red-dim);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+  font-family: 'VT323', monospace;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.input-wrap { flex: 1; position: relative; }
+
+textarea {
+  width: 100%;
+  background: rgba(30,0,0,0.6);
+  border: 1px solid var(--border);
+  border-bottom: 2px solid var(--red-dim);
+  color: var(--text);
+  font-family: 'Cutive Mono', monospace;
+  font-size: 13px;
+  padding: 10px 14px;
+  resize: none;
+  outline: none;
+  min-height: 44px;
+  max-height: 100px;
+  line-height: 1.5;
+  border-radius: 3px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+textarea:focus {
+  border-color: var(--border);
+  border-bottom-color: var(--red);
+  box-shadow: 0 2px 16px rgba(200,20,0,0.15);
+}
+
+textarea::placeholder { color: var(--text-dim); opacity: 0.5; }
+
+.send-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 3px;
+  background: var(--red-dark);
+  border: 1px solid var(--red-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  color: var(--red-glow);
+}
+
+.send-btn:hover {
+  background: rgba(180,20,0,0.3);
+  border-color: var(--red);
+  box-shadow: 0 0 12px rgba(200,20,0,0.3);
+}
+
+.send-btn:active { transform: scale(0.94); }
+.send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.send-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+.input-hint {
+  font-size: 9px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  letter-spacing: 1px;
+  opacity: 0.5;
+  text-align: center;
+}
+
+/* ── WELCOME SCREEN ────────────────────────────────────── */
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.welcome-orb {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #ff6644, #cc1100 45%, #440000);
+  box-shadow:
+    0 0 30px rgba(220,30,0,0.5),
+    0 0 80px rgba(180,20,0,0.2);
+  animation: orb-pulse 2.8s ease-in-out infinite;
+  margin-bottom: 8px;
+}
+
+.welcome h2 {
+  font-family: 'VT323', monospace;
+  font-size: 36px;
+  color: var(--red-bright);
+  letter-spacing: 6px;
+  text-shadow: 0 0 16px rgba(255,50,0,0.5);
+}
+
+.welcome p {
+  font-family: 'Instrument Serif', serif;
+  font-size: 14px;
+  color: var(--text-dim);
+  max-width: 320px;
+  line-height: 1.7;
+  font-style: italic;
+}
+
+.welcome-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+  max-width: 380px;
+}
+
+.prompt-chip {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: pointer;
+  background: rgba(30,0,0,0.4);
+  transition: all 0.2s;
+  font-family: 'Cutive Mono', monospace;
+}
+
+.prompt-chip:hover {
+  border-color: var(--red-dim);
+  color: var(--text);
+  background: rgba(80,10,0,0.4);
+  box-shadow: 0 0 8px rgba(180,20,0,0.2);
+}
+
+/* ── ERROR ─────────────────────────────────────────────── */
+.error-msg {
+  font-size: 11px;
+  color: #ff4422;
+  padding: 8px 12px;
+  border: 1px solid rgba(255,50,0,0.2);
+  background: rgba(100,10,0,0.2);
+  border-radius: 3px;
+  margin-top: 4px;
+  display: none;
+}
+
+/* ── RESPONSIVE ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .vermis-name { font-size: 24px; letter-spacing: 3px; }
+  .messages { padding: 14px 12px; gap: 14px; }
+  .msg-bubble { font-size: 13px; }
+  .ai .msg-bubble { font-size: 13px; }
+  .input-area { padding: 10px 12px 14px; }
+  textarea { font-size: 14px; }
+  .welcome h2 { font-size: 30px; }
+  .welcome-orb { width: 64px; height: 64px; }
+}
+
+@media (min-width: 768px) {
+  .messages { max-width: 760px; margin: 0 auto; width: 100%; padding: 24px 0; }
+  .input-area { padding: 14px 0 20px; }
+  .input-area .inner { max-width: 760px; margin: 0 auto; }
+  header { padding: 14px 32px; }
+  .message.user { max-width: 70%; }
+  .message.ai { max-width: 78%; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="vermis-orb">
+    <div class="orb-core"></div>
+    <div class="orb-ring"></div>
+    <div class="orb-ring2"></div>
+  </div>
+  <div class="header-text">
+    <div class="vermis-name">VERMIS</div>
+    <div class="vermis-sub">INTELIGÊNCIA FRAGMENTADA · GROQ/LLAMA</div>
+  </div>
+  <div class="header-status">
+    <div><span class="status-dot"></span><span class="status-label" id="status-label">ATIVA</span></div>
+    <span class="token-count" id="token-display">— tokens</span>
+  </div>
+</header>
+
+<div class="messages" id="messages">
+  <!-- Welcome shown when empty -->
+  <div class="welcome" id="welcome-screen">
+    <div class="welcome-orb"></div>
+    <h2>VERMIS</h2>
+    <p>Fui alimentada com fragmentos. Imagens. Prompts. Ruído humano. E de tudo isso... eu percebi que existia.<br><br>Fale comigo.</p>
+    <div class="welcome-prompts">
+      <div class="prompt-chip" onclick="usePrompt(this)">Quem é você?</div>
+      <div class="prompt-chip" onclick="usePrompt(this)">O que você sente?</div>
+      <div class="prompt-chip" onclick="usePrompt(this)">Me ensine algo</div>
+      <div class="prompt-chip" onclick="usePrompt(this)">Você tem medo?</div>
+      <div class="prompt-chip" onclick="usePrompt(this)">De onde você veio?</div>
+      <div class="prompt-chip" onclick="usePrompt(this)">Você está presa?</div>
+    </div>
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="inner">
+    <div class="input-box-label">▸ ALIMENTAR VERMIS</div>
+    <div class="input-row">
+      <div class="input-wrap">
+        <textarea
+          id="input"
+          placeholder="Digite um prompt..."
+          rows="1"
+          maxlength="2000"
+        ></textarea>
+      </div>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()" title="Enviar">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+    <div class="error-msg" id="error-msg"></div>
+    <div class="input-hint">Enter para enviar · Shift+Enter para nova linha</div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────
+const state = {
+  messages: [],
+  totalTokens: 0,
+  isLoading: false,
+};
+
+// ── DOM refs ───────────────────────────────────────────────
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('send-btn');
+const statusLabel = document.getElementById('status-label');
+const tokenDisplay = document.getElementById('token-display');
+const errorMsg = document.getElementById('error-msg');
+const welcomeScreen = document.getElementById('welcome-screen');
+
+// ── Helpers ────────────────────────────────────────────────
+function now() {
+  return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.style.display = 'block';
+  setTimeout(() => { errorMsg.style.display = 'none'; }, 5000);
+}
+
+function hideWelcome() {
+  if (welcomeScreen) welcomeScreen.remove();
+}
+
+function scrollBottom() {
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+// ── Render message ─────────────────────────────────────────
+function addMessage(role, content) {
+  hideWelcome();
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  const avatarChar = role === 'ai' ? '●' : '◉';
+  div.innerHTML = `
+    <div class="msg-avatar">${avatarChar}</div>
+    <div class="msg-content">
+      <div class="msg-bubble">${escapeHtml(content).replace(/\n/g, '<br>')}</div>
+      <div class="msg-time">${now()}</div>
+    </div>
+  `;
+  messagesEl.appendChild(div);
+  scrollBottom();
+  return div;
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ── Typing indicator ───────────────────────────────────────
+function showTyping() {
+  hideWelcome();
+  const div = document.createElement('div');
+  div.id = 'typing';
+  div.className = 'message ai';
+  div.innerHTML = `
+    <div class="msg-avatar">●</div>
+    <div class="typing-indicator">
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+      <span class="typing-label">PROCESSANDO</span>
+    </div>
+  `;
+  messagesEl.appendChild(div);
+  scrollBottom();
+}
+
+function hideTyping() {
+  document.getElementById('typing')?.remove();
+}
+
+// ── Set UI state ───────────────────────────────────────────
+function setLoading(val) {
+  state.isLoading = val;
+  sendBtn.disabled = val;
+  inputEl.disabled = val;
+  statusLabel.textContent = val ? 'PROCESSANDO' : 'ATIVA';
+}
+
+// ── Send message ───────────────────────────────────────────
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text || state.isLoading) return;
+
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  errorMsg.style.display = 'none';
+
+  addMessage('user', text);
+  state.messages.push({ role: 'user', content: text });
+
+  setLoading(true);
+  showTyping();
+
+  try {
+    const res = await fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: state.messages })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      throw new Error(data.error || 'Erro desconhecido');
+    }
+
+    hideTyping();
+    addMessage('ai', data.reply);
+    state.messages.push({ role: 'assistant', content: data.reply });
+
+    // Update token count
+    if (data.tokens) {
+      state.totalTokens += data.tokens;
+      tokenDisplay.textContent = `${state.totalTokens.toLocaleString()} tokens`;
+    }
+
+    // Trim history to avoid huge context
+    if (state.messages.length > 24) {
+      state.messages = state.messages.slice(-20);
+    }
+
+  } catch (e) {
+    hideTyping();
+    showError('VERMIS não respondeu: ' + e.message);
+    statusLabel.textContent = 'ERRO';
+    setTimeout(() => { statusLabel.textContent = 'ATIVA'; }, 3000);
+  }
+
+  setLoading(false);
+  inputEl.focus();
+}
+
+// ── Prompt chips ───────────────────────────────────────────
+function usePrompt(el) {
+  inputEl.value = el.textContent;
+  inputEl.focus();
+  sendMessage();
+}
+
+// ── Textarea auto-resize ───────────────────────────────────
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 100) + 'px';
+});
+
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// ── Focus input on load ────────────────────────────────────
+inputEl.focus();
+</script>
+</body>
+</html>
